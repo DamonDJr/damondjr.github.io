@@ -1,16 +1,297 @@
 <!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<title>Damon J</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damon Drummond — game developer</title>
+<meta name="description" content="Solo game developer. Maker of Word Wars: Typing Battle, a real-time word battler for iPhone and iPad.">
+<link rel="canonical" href="https://damondjr.github.io/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Damon Drummond">
+<meta property="og:title" content="Damon Drummond — game developer">
+<meta property="og:description" content="I build games where typing is the mechanic, not the interface. Maker of Word Wars: Typing Battle.">
+<meta property="og:url" content="https://damondjr.github.io/">
+<meta property="og:image" content="https://damondjr.github.io/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
-  body{background:#0b1020;color:#e6ecff;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-       display:grid;place-items:center;min-height:100vh;margin:0;text-align:center}
-  a{color:#7bdff2}
-  h1{font-size:1.6rem;margin:0 0 .5rem}
-  p{color:#8d99bd;margin:.3rem 0}
+/* ---------------------------------------------------------------------------
+   Word Wars' own palette, straight from scripts/game.gd. The page is a shop
+   window for the game, so it uses the game's colours rather than inventing a
+   second identity: cyan is you, pink is the opponent, gold is a big hit.
+   --------------------------------------------------------------------------- */
+:root{
+  --void:#0b1020;
+  --deep:#141a36;
+  --panel:#101734;
+  --edge:#26305c;
+  --ink:#e6ecff;
+  --dim:#7787b5;
+  --you:#7bdff2;
+  --them:#ff8fa3;
+  --hit:#ffd166;
+  --measure:56rem;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--void);
+  /* Two soft pools rather than a flat fill — the game draws a vertical
+     gradient behind the board and this is the same idea at page scale. */
+  background-image:
+    radial-gradient(90rem 45rem at 78% -8%, rgba(123,223,242,.10), transparent 62%),
+    radial-gradient(70rem 40rem at 6% 18%, rgba(255,143,163,.07), transparent 60%);
+  background-attachment:fixed;
+  color:var(--ink);
+  font:400 1.0625rem/1.65 "Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{max-width:var(--measure);margin:0 auto;padding:0 1.5rem}
+.band{padding-block:4.5rem}
+.band + .band{border-top:1px solid var(--edge)}
+
+a{color:var(--you);text-decoration-color:rgba(123,223,242,.35);text-underline-offset:.2em}
+a:hover{text-decoration-color:var(--you)}
+:focus-visible{outline:2px solid var(--hit);outline-offset:3px;border-radius:3px}
+
+h1,h2{margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+h1{font-size:clamp(2.1rem,6.2vw,3.4rem)}
+h2{font-size:clamp(1.5rem,4vw,2.1rem)}
+p{margin:0 0 1.1rem}
+.lede{font-size:clamp(1.05rem,2.3vw,1.2rem);color:#c3cdf0;max-width:44ch;margin-top:1.1rem}
+
+/* Mono is the utility voice here for a reason: this is a typing game, and
+   monospace is what typing looks like. Labels, counts and machine facts only —
+   never body copy. */
+.eyebrow{margin:0 0 1rem;
+  font:700 .72rem/1 "JetBrains Mono",ui-monospace,monospace;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  display:block;
+}
+
+/* --- identity ----------------------------------------------------------- */
+.id{display:flex;align-items:center;gap:1.1rem;padding-block:2.5rem 0}
+/* The avatar is a square with the board's own border treatment, not a circle:
+   everything in this game is a tile, including the person who made it. */
+.avatar{
+  width:76px;height:76px;flex:none;border-radius:14px;object-fit:cover;
+  border:2px solid var(--you);
+  box-shadow:0 0 0 5px rgba(123,223,242,.08), 0 10px 30px rgba(0,0,0,.5);
+  background:var(--deep);
+}
+.id-name{font-size:1.22rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.id-role{margin:.2rem 0 0;font:400 .82rem/1.4 "JetBrains Mono",ui-monospace,monospace;color:var(--dim)}
+
+/* --- the chain ---------------------------------------------------------- */
+/* The signature of the page. Three lines that are the whole game: the letters
+   you answer with, and the letters you leave behind. */
+.chain-label{margin-top:2.75rem}
+.chain{list-style:none;margin:0;padding:0;display:grid;gap:.75rem}
+.link{
+  display:grid;align-items:center;gap:.5rem 1rem;
+  grid-template-columns:auto 1fr auto auto;
+  padding:.85rem 1rem;border-radius:12px;
+  background:linear-gradient(180deg,var(--panel),#0d1329);
+  border:1px solid var(--edge);
+}
+.side{font:700 .68rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em;color:var(--dim)}
+.word{font-size:clamp(1.05rem,3.4vw,1.45rem);font-weight:700;letter-spacing:.01em;white-space:nowrap}
+/* Underlined: the letters this word had to open with to clear what landed.
+   `currentColor` is safe here — .you/.them set the colour and the border
+   follows it. */
+.ans{border-bottom:2px solid currentColor;padding-bottom:1px}
+
+/* Filled: the letters that get stamped onto the next block.
+   Written as two-class rules rather than `background:currentColor`. The
+   single-class version set `color:var(--void)` for the dark text, but .you and
+   .them are declared later at the same specificity, so they won the `color`
+   property — which made the fill and the letters the same pink, and the stamp
+   rendered as an empty chip. Two classes (0,2,0) outrank one (0,1,0) and say
+   what they mean. */
+.stamp{padding:.06em .3em;border-radius:5px}
+.stamp.you{background:var(--you);color:var(--void)}
+.stamp.them{background:var(--them);color:var(--void)}
+.to{color:var(--dim);font-size:1.1rem;justify-self:center}
+/* A block, drawn the way the board draws one. */
+.blk{
+  font-size:clamp(.9rem,2.6vw,1.05rem);font-weight:700;letter-spacing:.08em;
+  padding:.5rem .8rem;border-radius:9px;border:2px solid currentColor;
+  background:rgba(255,255,255,.03);white-space:nowrap;
+}
+.you{color:var(--you)}
+.them{color:var(--them)}
+.link .word{color:var(--ink)}
+.chain-note{margin:1.1rem 0 0;color:var(--dim);font-size:.95rem}
+
+/* --- the game ----------------------------------------------------------- */
+.game .first{margin-top:.9rem}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 15rem;gap:2.5rem;align-items:start}
+.shot{width:100%;height:auto;border-radius:16px;border:1px solid var(--edge);
+      box-shadow:0 18px 50px rgba(0,0,0,.55);display:block}
+.facts{font:400 .82rem/1.9 "JetBrains Mono",ui-monospace,monospace;color:var(--dim);
+       margin:0 0 1.6rem;list-style:none;padding:0}
+.facts b{color:var(--ink);font-weight:400}
+
+.actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:1.8rem}
+.btn{
+  display:inline-block;padding:.7rem 1.15rem;border-radius:10px;
+  font:700 .92rem/1 "Space Grotesk",sans-serif;text-decoration:none;
+  border:1px solid var(--edge);color:var(--ink);background:var(--panel);
+  transition:border-color .15s ease, transform .15s ease;
+}
+.btn:hover{border-color:var(--you);transform:translateY(-1px)}
+.btn-go{background:var(--you);border-color:var(--you);color:#06243b}
+.btn-go:hover{background:#9ce8f7;border-color:#9ce8f7}
+
+/* The badge is somebody else's artwork and carries its own colours. It gets a
+   quiet shelf of its own rather than being crowded next to our buttons. */
+.badge{margin-top:.4rem;padding-top:1.5rem;border-top:1px solid var(--edge)}
+.badge img{display:block;height:auto;max-width:100%}
+.badge .eyebrow{margin:0 0 1rem;margin-bottom:.8rem}
+
+/* --- footer ------------------------------------------------------------- */
+.rows{list-style:none;margin:0 0 1.6rem;padding:0;display:grid;gap:.55rem}
+.rows li{display:flex;gap:.9rem;align-items:baseline;flex-wrap:wrap}
+.rows span{font:400 .74rem/1.6 "JetBrains Mono",ui-monospace,monospace;
+           color:var(--dim);letter-spacing:.08em;text-transform:uppercase;min-width:5.5rem}
+.fine{font:400 .78rem/1.7 "JetBrains Mono",ui-monospace,monospace;color:#5b6890;margin:0}
+.fine a{color:#8fa0cf}
+
+/* --- motion ------------------------------------------------------------- */
+/* One orchestrated moment: the chain assembles itself once, in order, the way
+   a rally actually happens. Nothing else on the page moves. */
+@media (prefers-reduced-motion:no-preference){
+  .link{opacity:0;transform:translateY(12px);animation:rise .55s cubic-bezier(.2,.75,.3,1) forwards}
+  .link:nth-child(1){animation-delay:.20s}
+  .link:nth-child(2){animation-delay:.55s}
+  .link:nth-child(3){animation-delay:.90s}
+  .blk{opacity:0;animation:land .4s cubic-bezier(.2,.9,.3,1) forwards}
+  .link:nth-child(1) .blk{animation-delay:.50s}
+  .link:nth-child(2) .blk{animation-delay:.85s}
+  .link:nth-child(3) .blk{animation-delay:1.20s}
+}
+@keyframes rise{to{opacity:1;transform:none}}
+@keyframes land{from{opacity:0;transform:translateY(-9px) scale(.94)}to{opacity:1;transform:none}}
+
+/* --- narrow ------------------------------------------------------------- */
+@media (max-width:46rem){
+  .band{padding-block:3.25rem}
+  .game{grid-template-columns:1fr;gap:2rem}
+  .shot{max-width:16rem;margin-inline:auto}
+  .link{grid-template-columns:1fr auto;gap:.45rem .8rem}
+  .side{grid-column:1/-1}
+  .to{display:none}
+  .word{white-space:normal}
+}
 </style>
-<div>
-  <h1>Damon J</h1>
-  <p>iOS games.</p>
-  <p><a href="/word-wars/">Word Wars — Typing Battle</a></p>
-</div>
+</head>
+<body>
+
+<header class="wrap id">
+  <!-- Swap assets/avatar.png for whichever picture you want here; it is
+       displayed as a 76px square, so a square source crops best. -->
+  <img class="avatar" src="assets/avatar.png" width="76" height="76"
+       alt="Damon Drummond">
+  <div>
+    <p class="id-name">Damon Drummond</p>
+    <p class="id-role">Solo game developer &middot; iOS</p>
+  </div>
+</header>
+
+<main>
+
+  <section class="wrap band">
+    <h1>Word games that<br>fight back.</h1>
+    <p class="lede">I build games where typing is the
+    mechanic rather than the interface &mdash; where the word you just played is
+    the problem somebody else has to solve.</p>
+
+    <p class="eyebrow chain-label">The idea, in three moves</p>
+    <ol class="chain">
+      <li class="link">
+        <span class="side">YOU PLAY</span>
+        <span class="word">FRIEND<b class="stamp them">SHIP</b></span>
+        <span class="to" aria-hidden="true">&rarr;</span>
+        <span class="blk them">SHIP</span>
+      </li>
+      <li class="link">
+        <span class="side">THEY ANSWER</span>
+        <span class="word"><b class="ans them">SHIP</b><b class="stamp you">MENT</b>S</span>
+        <span class="to" aria-hidden="true">&rarr;</span>
+        <span class="blk you">MENT</span>
+      </li>
+      <li class="link">
+        <span class="side">YOU ANSWER</span>
+        <span class="word"><b class="ans you">MENT</b>ION<b class="stamp them">ING</b></span>
+        <span class="to" aria-hidden="true">&rarr;</span>
+        <span class="blk them">ING</span>
+      </li>
+    </ol>
+    <p class="chain-note">The last letters of your word are stamped onto a block
+    on their board. They can only clear it with a word that starts with those
+    letters &mdash; and that word&rsquo;s ending comes straight back at you.</p>
+  </section>
+
+  <section class="wrap band">
+    <p class="eyebrow">Out now</p>
+    <div class="game">
+      <div>
+        <h2>Word Wars: Typing Battle</h2>
+        <p class="first">A real-time word battler for iPhone and iPad.
+        Play the CPU any time, or another player over the network. How hard you
+        hit comes from rhythm and length together: keep your chain alive between
+        words, and reach for the longer answer when you can see one.</p>
+        <p>Fill your board and it costs one of three lives rather than the match
+        &mdash; but the pressure never resets, so the third life is played under
+        conditions the first never saw.</p>
+
+        <ul class="facts">
+          <li><b>Free</b> &middot; iPhone &amp; iPad &middot; iOS 17+</li>
+          <li>Version <b>1.4.0</b> &middot; also on Windows and Linux</li>
+        </ul>
+
+        <div class="actions">
+          <a class="btn btn-go" href="https://apps.apple.com/us/app/word-wars-typing-battle/id6802900966">Get it on the App&nbsp;Store</a>
+          <a class="btn" href="/word-wars/">Support</a>
+          <a class="btn" href="https://github.com/DamonDJr/word-wars/releases/latest">Desktop build</a>
+        </div>
+
+        <div class="badge">
+          <p class="eyebrow">Featured</p>
+          <a href="https://pixelpicked.com/game/3Cyutut9elL/word-wars-typing-battle/" target="_blank" rel="noopener">
+            <img src="https://api.pixelpicked.com/api/badges/3Cyutut9elL/live.png?theme=dark"
+                 width="250" height="54" alt="Approved on PixelPicked" loading="lazy" />
+          </a>
+        </div>
+      </div>
+
+      <img class="shot" src="assets/word-wars-solo.jpg" width="540" height="1080"
+           alt="A Word Wars match in progress: stamped blocks stacked on the board, a word being typed below." loading="lazy">
+    </div>
+  </section>
+
+  <section class="wrap band">
+    <p class="eyebrow">Elsewhere</p>
+    <ul class="rows">
+      <li><span>Email</span> <a href="mailto:damondjr95@icloud.com">damondjr95@icloud.com</a></li>
+      <li><span>Code</span> <a href="https://github.com/DamonDJr">github.com/DamonDJr</a></li>
+      <li><span>App Store</span> <a href="https://apps.apple.com/us/developer/damon-drummond/id6802900968">All apps</a></li>
+    </ul>
+    <p class="fine">Advertising partners are declared in
+      <a href="/app-ads.txt">app-ads.txt</a>.</p>
+  </section>
+
+</main>
+</body>
+</html>
