@@ -38,109 +38,97 @@
     <p class="post-date">10 September 2026</p>
     <h1>Word endings make terrible word beginnings</h1>
 
-    <p class="lede-post">Word Wars has one rule, and it fits in a sentence: the
-    last letters of the word you type are stamped onto a block that lands on
-    your opponent&rsquo;s board, and they can only clear it with a word that
-    <strong>starts</strong> with those letters.</p>
+    <p class="lede-post">I was watching a friend play a word game where two people
+    took turns making words back and forth. It was cool, but my first thought
+    was simple: <strong>this is way too slow.</strong></p>
 
-    <p>The sentence took a minute to write. Making it true took most of the
-    project.</p>
+    <p>Then I remembered playing <em>Dr. Robotnik&rsquo;s Mean Bean Machine</em>
+    with my family when I was younger. When you cleared a line, you could send
+    garbage blocks to your opponent.</p>
 
-    <h2>English does not cooperate</h2>
+    <p>So I wondered: what if I mixed the two?</p>
 
-    <p>Endings are a small set. Beginnings are a large one. The rule asks the
-    small set to behave like the large one, and it will not.</p>
+    <p>Instead of taking turns, both players would type in real time. Every word
+    would send a block to the other player, and the block would contain the
+    ending of that word. To clear it, you would have to start your next word
+    with those letters.</p>
 
-    <p>Type <span class="frag">RUNNING</span> and look at what its tail actually
-    offers: <span class="frag">NING</span>, <span class="frag">ING</span>,
-    <span class="frag">NG</span>, <span class="frag">G</span>. Exactly one of
-    those is a beginning anybody can use. The rest are not rare, they are
-    impossible &mdash; no useful number of English words start with NG.</p>
+    <p>Your ending becomes their beginning.</p>
 
-    <p>So RUNNING has a pool of one. However clever the selection on top of it,
-    it brands <span class="frag">ING</span>. Every time.</p>
+    <h2>The first prototype</h2>
 
-    <h2>The wall of ING and LY</h2>
+    <p>The first version was built for PC. It was rough, but surprisingly fun.
+    The core mechanic worked almost immediately.</p>
 
-    <p>The first version took the longest answerable tail on every attack, which
-    sounds correct and is not. The longest tails are the most generic ones.
-    Boards filled up with ING and LY and TION and ING again, and the game
-    quietly stopped being a word game &mdash; you were not reading the board any
-    more, you were typing the same four answers on a loop.</p>
+    <p>There was one problem. I type all day for my career, so when I started
+    playing against my friends, I absolutely destroyed them.</p>
 
-    <p>A rule that hands you the same problem every time is not a rule. It is a
-    chore.</p>
+    <p>In seconds.</p>
 
-    <h2>What &ldquo;answerable&rdquo; had to mean</h2>
+    <p>That&rsquo;s where the three lives came from. I wanted being good at typing
+    to matter without letting one player completely run away with the game.</p>
 
-    <p>A stamp is a promise that somebody can answer it, so the promise got a
-    number. A fragment is only allowed onto a block if at least
-    <strong>40 words in the full dictionary</strong> begin with it, and at least
-    <strong>6 in the common list</strong> do.</p>
+    <h2>Then English got in the way</h2>
 
-    <p>The dictionary floor keeps it legal. The common-list floor keeps it
-    <em>findable</em> &mdash; there is no point in a stamp that can only be
-    cleared by somebody who happens to know an obscure word. Single letters are
-    held higher again, at 30 common words rather than 6, because a one-letter
-    stamp is nearly free to answer and should stay a rarity rather than a
-    get-out.</p>
+    <p>The rule sounds simple: the last letters of your word become the first
+    letters of your opponent&rsquo;s word.</p>
 
-    <h2>Looking just off the end</h2>
+    <p>But take <span class="frag">RUNNING</span>.</p>
 
-    <p>Raising the standard does not solve the pool-of-one problem. RUNNING
-    still only has ING.</p>
+    <p><span class="frag">NING</span>, <span class="frag">ING</span>,
+    <span class="frag">NG</span>, <span class="frag">G</span>.</p>
 
-    <p>So the search stopped being strictly about suffixes. It now also
-    considers a few windows from <em>near</em> the end &mdash; a letter or two
-    in from the tail.</p>
+    <p>Only one of those is really useful as the beginning of another word.</p>
 
-    <p>That is what rescues <span class="frag">SHIPMENTS</span>, whose true tail
-    is a bare <span class="frag">S</span> and nothing else. Nudge the window in
-    by one letter and <span class="frag">MENT</span> appears, which is a real
-    beginning with real answers. It is the same trick that makes
-    <span class="frag">FIX</span> playable, its only true tail being an
-    <span class="frag">X</span> that almost nothing starts with.</p>
+    <p>If I always picked the longest playable ending, the game quickly became
+    a parade of <span class="frag">ING</span>, <span class="frag">LY</span>,
+    and <span class="frag">TION</span>.</p>
 
-    <p>One guard: a window may never start at the front of the word.
-    <span class="frag">MUSIC</span> must not brand a block
-    <span class="frag">MUS</span>, because MUS is just MUSIC with the end
-    chopped off, and being handed back the word you were about to type is not a
-    puzzle. Short words are exempt, since a three-letter word has no meaningful
-    middle.</p>
+    <p>Technically, the system was working. The game just wasn&rsquo;t very
+    interesting anymore.</p>
 
-    <p>Shifted windows are also a harsher thing to be given than an honest
-    suffix, so they have to clear double the common-word floor before they
-    qualify.</p>
+    <h2>Finding better endings</h2>
 
-    <h2>Choosing between whatever survives</h2>
+    <p>I ended up making the game look at how many words could actually start
+    with a particular fragment. That helped filter out endings that were either
+    impossible or technically valid but annoying to answer.</p>
 
-    <p>What is left goes into a weighted draw rather than a sort:</p>
+    <p>Then I ran into words that simply didn't have a good ending.</p>
 
-    <ul>
-      <li>Longer stamps weigh more &mdash; length squared &mdash; so they stay
-      favoured without winning automatically.</li>
-      <li>A shifted window is worth 0.6 of a true tail, because it is the less
-      honest kind.</li>
-      <li>A one-letter stamp is halved again on top of that.</li>
-      <li>Anything the defender is already dealing with, or that either side
-      threw recently, drops to 0.15.</li>
-    </ul>
+    <p><span class="frag">SHIPMENTS</span> is a good example. Its actual ending
+    isn't very useful, but looking just inside the end gives us
+    <span class="frag">MENT</span>, which has plenty of possible answers.</p>
 
-    <p>That last line is what actually broke the wall. ING did not become rare.
-    It stopped being the answer twice in a row, which turns out to be the part
-    that mattered.</p>
+    <p>That became part of the solution. The game can occasionally look just
+    inside the end of a word for a better fragment, while avoiding things like
+    <span class="frag">MUSIC</span> becoming <span class="frag">MUS</span>.</p>
 
-    <h2>What it changed</h2>
+    <p>Eventually, the goal stopped being finding the mathematically perfect
+    ending. I just wanted the game to keep giving players interesting problems.</p>
 
-    <p>The board reads differently now. You are not answering the same four
-    endings all match, so you have to look at what actually landed &mdash; and
-    the moment you have to look, the rule starts doing the job it was written
-    for. Your endings become their beginnings, and neither of you gets to stop
-    thinking about it.</p>
+    <p><span class="frag">ING</span> didn't have to disappear. It just couldn't
+    be the answer every time.</p>
+
+    <h2>From PC to iPhone</h2>
+
+    <p>Once the core gameplay worked, I decided to bring it to mobile.</p>
+
+    <p>The first version was a little clumsy. The UI had been designed for a
+    much larger PC screen, and some things that worked perfectly fine on a
+    monitor felt terrible on a phone.</p>
+
+    <p>After a lot of compromises and tweaking, I eventually got it to a place
+    I'm happy with.</p>
+
+    <p>And honestly, the core gameplay is still the part I'm most proud of.</p>
+
+    <p>Everything else has just been me figuring out how to turn that original
+    idea into an actual game.</p>
+
+    <p>I&rsquo;m figuring this shit out as I go.</p>
 
     <a class="back" href="/devlog/">&larr; All posts</a>
   </article>
 </main>
-
 </body>
 </html>
