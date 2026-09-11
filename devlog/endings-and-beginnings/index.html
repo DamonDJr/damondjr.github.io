@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word endings make terrible word beginnings — Damon Drummond</title>
+<meta name="description" content="Word Wars asks the last letters of your word to become the first letters of somebody else's. English does not cooperate, and this is what it took to make the rule hold.">
+<link rel="canonical" href="https://damondjr.github.io/devlog/endings-and-beginnings/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Damon Drummond">
+<meta property="og:title" content="Word endings make terrible word beginnings">
+<meta property="og:description" content="The rule took a minute to write down and most of the project to make true.">
+<meta property="og:url" content="https://damondjr.github.io/devlog/endings-and-beginnings/">
+<meta property="og:image" content="https://damondjr.github.io/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="/assets/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<header class="wrap id">
+  <a href="/"><img class="avatar" src="/assets/avatar.jpg" width="76" height="76" alt="Damon Drummond"></a>
+  <div>
+    <p class="id-name">Damon Drummond</p>
+    <p class="id-role">Solo game developer &middot; iOS</p>
+  </div>
+  <nav class="nav"><a href="/devlog/" aria-current="page">Devlog</a></nav>
+</header>
+
+<main class="wrap band">
+  <article class="post">
+    <p class="post-date">10 September 2026</p>
+    <h1>Word endings make terrible word beginnings</h1>
+
+    <p class="lede-post">Word Wars has one rule, and it fits in a sentence: the
+    last letters of the word you type are stamped onto a block that lands on
+    your opponent&rsquo;s board, and they can only clear it with a word that
+    <strong>starts</strong> with those letters.</p>
+
+    <p>The sentence took a minute to write. Making it true took most of the
+    project.</p>
+
+    <h2>English does not cooperate</h2>
+
+    <p>Endings are a small set. Beginnings are a large one. The rule asks the
+    small set to behave like the large one, and it will not.</p>
+
+    <p>Type <span class="frag">RUNNING</span> and look at what its tail actually
+    offers: <span class="frag">NING</span>, <span class="frag">ING</span>,
+    <span class="frag">NG</span>, <span class="frag">G</span>. Exactly one of
+    those is a beginning anybody can use. The rest are not rare, they are
+    impossible &mdash; no useful number of English words start with NG.</p>
+
+    <p>So RUNNING has a pool of one. However clever the selection on top of it,
+    it brands <span class="frag">ING</span>. Every time.</p>
+
+    <h2>The wall of ING and LY</h2>
+
+    <p>The first version took the longest answerable tail on every attack, which
+    sounds correct and is not. The longest tails are the most generic ones.
+    Boards filled up with ING and LY and TION and ING again, and the game
+    quietly stopped being a word game &mdash; you were not reading the board any
+    more, you were typing the same four answers on a loop.</p>
+
+    <p>A rule that hands you the same problem every time is not a rule. It is a
+    chore.</p>
+
+    <h2>What &ldquo;answerable&rdquo; had to mean</h2>
+
+    <p>A stamp is a promise that somebody can answer it, so the promise got a
+    number. A fragment is only allowed onto a block if at least
+    <strong>40 words in the full dictionary</strong> begin with it, and at least
+    <strong>6 in the common list</strong> do.</p>
+
+    <p>The dictionary floor keeps it legal. The common-list floor keeps it
+    <em>findable</em> &mdash; there is no point in a stamp that can only be
+    cleared by somebody who happens to know an obscure word. Single letters are
+    held higher again, at 30 common words rather than 6, because a one-letter
+    stamp is nearly free to answer and should stay a rarity rather than a
+    get-out.</p>
+
+    <h2>Looking just off the end</h2>
+
+    <p>Raising the standard does not solve the pool-of-one problem. RUNNING
+    still only has ING.</p>
+
+    <p>So the search stopped being strictly about suffixes. It now also
+    considers a few windows from <em>near</em> the end &mdash; a letter or two
+    in from the tail.</p>
+
+    <p>That is what rescues <span class="frag">SHIPMENTS</span>, whose true tail
+    is a bare <span class="frag">S</span> and nothing else. Nudge the window in
+    by one letter and <span class="frag">MENT</span> appears, which is a real
+    beginning with real answers. It is the same trick that makes
+    <span class="frag">FIX</span> playable, its only true tail being an
+    <span class="frag">X</span> that almost nothing starts with.</p>
+
+    <p>One guard: a window may never start at the front of the word.
+    <span class="frag">MUSIC</span> must not brand a block
+    <span class="frag">MUS</span>, because MUS is just MUSIC with the end
+    chopped off, and being handed back the word you were about to type is not a
+    puzzle. Short words are exempt, since a three-letter word has no meaningful
+    middle.</p>
+
+    <p>Shifted windows are also a harsher thing to be given than an honest
+    suffix, so they have to clear double the common-word floor before they
+    qualify.</p>
+
+    <h2>Choosing between whatever survives</h2>
+
+    <p>What is left goes into a weighted draw rather than a sort:</p>
+
+    <ul>
+      <li>Longer stamps weigh more &mdash; length squared &mdash; so they stay
+      favoured without winning automatically.</li>
+      <li>A shifted window is worth 0.6 of a true tail, because it is the less
+      honest kind.</li>
+      <li>A one-letter stamp is halved again on top of that.</li>
+      <li>Anything the defender is already dealing with, or that either side
+      threw recently, drops to 0.15.</li>
+    </ul>
+
+    <p>That last line is what actually broke the wall. ING did not become rare.
+    It stopped being the answer twice in a row, which turns out to be the part
+    that mattered.</p>
+
+    <h2>What it changed</h2>
+
+    <p>The board reads differently now. You are not answering the same four
+    endings all match, so you have to look at what actually landed &mdash; and
+    the moment you have to look, the rule starts doing the job it was written
+    for. Your endings become their beginnings, and neither of you gets to stop
+    thinking about it.</p>
+
+    <a class="back" href="/devlog/">&larr; All posts</a>
+  </article>
+</main>
+
+</body>
+</html>
