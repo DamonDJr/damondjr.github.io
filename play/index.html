@@ -8,14 +8,22 @@
 <link rel="canonical" href="https://damondjr.github.io/play/">
 
 <!-- The bio link. https://damondjr.github.io/play/ sends anyone who can
-     install the game straight to its store page. The page below is only what
-     shows while that happens, or for anyone the store can't serve yet.
+     install the game straight to its store page.
 
      Tag each place you post the link with ?c=, e.g.
          https://damondjr.github.io/play/?c=tiktok
          https://damondjr.github.io/play/?c=instagram
      and the tag reaches App Store Connect as the campaign, under
-     Analytics → Acquisition → Campaigns. No ?c= counts as "site". -->
+     Analytics → Acquisition → Campaigns. No ?c= counts as "site".
+
+     Three things can happen, and the script puts one class on <html> to say
+     which:
+       (none)   a real browser: redirect to the store, this page flashes by.
+       inapp    TikTok, Instagram or Facebook's built-in browser. TikTok
+                blocks the jump to the App Store from inside its browser, so
+                nothing is attempted automatically. The page becomes a small
+                pitch with the ways out, most likely to work first.
+       android  no store to send them to yet (PLAY_URL is empty). -->
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Damon Drummond">
@@ -30,7 +38,6 @@
 (function () {
   // Your App Store Connect provider token: App Store Connect → Analytics →
   // Acquisition → Campaigns → Generate Link, then copy the number after pt=.
-  // Until it's filled in the redirect still works; Apple just can't attribute.
   var PROVIDER_TOKEN = "129330802";
   // The Play listing, once the game is live there. Until then Android stays on
   // this page rather than being sent to an App Store it can't use.
@@ -39,6 +46,13 @@
   var APP_ID = "6802900966";
   var ua = navigator.userAgent || "";
   var android = /Android/i.test(ua);
+  var ios = /iPhone|iPad|iPod/i.test(ua);
+  // TikTok's webview names itself musical_ly / BytedanceWebview / TikTok;
+  // Instagram and Facebook say Instagram / FBAN / FBAV. Belt and braces for
+  // anything else on iOS: every real iOS browser (Safari, Chrome, Firefox)
+  // says "Safari/" in its user agent, and a bare app webview does not.
+  var inapp = /musical_ly|Bytedance|TikTok|trill_|Instagram|FBAN|FBAV/i.test(ua)
+    || (ios && !/Safari\//.test(ua));
 
   var tag = "site";
   try {
@@ -51,14 +65,17 @@
   if (PROVIDER_TOKEN) {
     apple += "?pt=" + PROVIDER_TOKEN + "&ct=" + encodeURIComponent(tag) + "&mt=8";
   }
-  window.WW_STORE = apple;
 
   var dest = android ? PLAY_URL : apple;
-  if (dest) {
-    // replace() so Back from the store returns to TikTok, not to this page.
-    location.replace(dest);
-  } else {
+  window.WW = { store: dest || apple, ios: ios, android: android };
+
+  if (!dest) {
     document.documentElement.className = "android";
+  } else if (inapp) {
+    document.documentElement.className = "inapp";
+  } else {
+    // replace() so Back from the store returns to where they came from.
+    location.replace(dest);
   }
 })();
 </script>
@@ -73,13 +90,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/site.css">
 <style>
-  .go { padding-block: 3.5rem; }
-  .go h1 { margin-bottom: 1rem; }
-  /* One message for iPhone (on its way to the store), another for Android
-     (not there yet). The script picks by adding a class to <html>. */
-  .when-android { display: none; }
-  .android .when-android { display: block; }
-  .android .when-apple { display: none; }
+  .go { padding-block: 2.75rem 3rem; }
+  .go h1 { margin-bottom: .9rem; }
+  .go .lede { margin-bottom: 1.6rem; }
+
+  /* One view per situation; the script picks by the class on <html>. */
+  .when-inapp, .when-android { display: none; }
+  .inapp .when-inapp, .android .when-android { display: block; }
+  .inapp .when-redirect, .android .when-redirect { display: none; }
+  /* Safari's own button is iOS-only; the scheme means nothing elsewhere. */
+  .when-ios { display: none; }
+  .ios .when-ios { display: block; }
+  /* The in-app view carries its own pitch, so the idea isn't said twice. */
+  .inapp .idea { display: none; }
+
+  .btn-big { font-size: 1.05rem; padding: 1rem 1.4rem; width: 100%;
+             text-align: center; }
+  .ways { list-style: none; margin: 0 0 1.8rem; padding: 0; display: grid; gap: .8rem; }
+  .ways li { padding: 1rem 1.1rem; border-radius: 12px; border: 1px solid var(--edge);
+             background: linear-gradient(180deg, var(--panel), #0d1329); }
+  .ways .n { font: 700 .7rem/1 "JetBrains Mono", ui-monospace, monospace;
+             letter-spacing: .14em; color: var(--dim); display: block; margin-bottom: .6rem; }
+  .ways p { margin: 0; }
+  .ways .hint { margin-top: .6rem; color: var(--dim); font-size: .9rem; }
+  .dots { display: inline-block; padding: 0 .35rem; border-radius: 6px;
+          border: 1px solid var(--edge); font-weight: 700; letter-spacing: .1em; }
+  .copy { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-top: .6rem; }
+  .copy code { font: 700 .95rem/1.2 "JetBrains Mono", ui-monospace, monospace;
+               color: var(--hit); }
+  .copy button { font: 700 .8rem/1 "Space Grotesk", sans-serif; cursor: pointer;
+                 padding: .45rem .7rem; border-radius: 8px; border: 1px solid var(--edge);
+                 background: var(--deep); color: var(--ink); }
+
+  .pitch { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1.1rem; align-items: start;
+           padding-top: 1.6rem; border-top: 1px solid var(--edge); }
+  .pitch .shot { border-radius: 12px; }
+  .pitch p { font-size: .95rem; color: #c3cdf0; }
+  .pitch .facts { margin: 0; }
 </style>
 </head>
 <body>
@@ -98,16 +145,64 @@
   <section class="wrap band go">
     <p class="eyebrow">Word Wars: Typing Battle</p>
 
-    <div class="when-apple">
+    <!-- A real browser: on its way to the store already. -->
+    <div class="when-redirect">
       <h1>Opening the App&nbsp;Store&hellip;</h1>
       <p class="lede">If nothing happens, tap the button. It's free.</p>
       <div class="actions">
-        <a class="btn btn-go" id="store"
+        <a class="btn btn-go js-store"
            href="https://apps.apple.com/app/apple-store/id6802900966">Get it on the App&nbsp;Store</a>
         <a class="btn" href="/">About the game</a>
       </div>
     </div>
 
+    <!-- TikTok / Instagram / Facebook's browser. -->
+    <div class="when-inapp">
+      <h1>One more tap.</h1>
+      <p class="lede">This app's browser won't open the App Store, so the game
+      is one step away. It's free.</p>
+
+      <ol class="ways">
+        <li class="when-ios">
+          <span class="n">EASIEST</span>
+          <a class="btn btn-go btn-big js-safari" href="#">Open in Safari</a>
+          <p class="hint">It'll take you straight to the App Store from there.</p>
+        </li>
+        <li>
+          <span class="n">OR</span>
+          <p>Tap <span class="dots">&middot;&middot;&middot;</span> in the top-right
+          corner, then <b>Open in browser</b>.</p>
+        </li>
+        <li>
+          <span class="n">OR SEARCH THE APP STORE FOR</span>
+          <div class="copy">
+            <code>Word Wars Typing Battle</code>
+            <button type="button" class="js-copy">Copy</button>
+          </div>
+        </li>
+      </ol>
+
+      <div class="actions">
+        <a class="btn js-store"
+           href="https://apps.apple.com/app/apple-store/id6802900966">Try the App&nbsp;Store link</a>
+      </div>
+
+      <div class="pitch">
+        <img class="shot" src="/assets/word-wars-solo.jpg" width="540" height="1080"
+             alt="A Word Wars match in progress: stamped blocks stacked on the board, a word being typed below.">
+        <div>
+          <p>Type a word and its last letters land on your opponent's board.
+          They can only clear them with a word that starts with those letters.
+          FRIEND<b>SHIP</b> sends them <b>SHIP</b>.</p>
+          <ul class="facts">
+            <li><b>Free</b> &middot; iPhone &amp; iPad</li>
+            <li>Play friends with a link &middot; no account</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android, until the game is on Google Play. -->
     <div class="when-android">
       <h1>Coming to Android soon.</h1>
       <p class="lede">Word Wars is on iPhone and iPad right now, and the Android
@@ -118,17 +213,44 @@
       </div>
     </div>
 
-    <p class="eyebrow">The idea</p>
-    <p>Type a word and its last letters land on your opponent's board. They can
-    only clear them with a word that starts with those letters.
-    FRIEND<b>SHIP</b> sends them <b>SHIP</b>.</p>
+    <div class="idea">
+      <p class="eyebrow">The idea</p>
+      <p>Type a word and its last letters land on your opponent's board. They can
+      only clear them with a word that starts with those letters.
+      FRIEND<b>SHIP</b> sends them <b>SHIP</b>.</p>
+    </div>
   </section>
 </main>
 
 <script>
-  // The button carries the same tracked link the redirect used.
-  var s = document.getElementById("store");
-  if (s && window.WW_STORE) s.href = window.WW_STORE;
+(function () {
+  var W = window.WW || {};
+  var root = document.documentElement;
+  if (W.ios) root.classList.add("ios");
+
+  var links = document.querySelectorAll(".js-store");
+  for (var i = 0; i < links.length; i++) if (W.store) links[i].href = W.store;
+
+  // Safari opens this same page (tag and all) via iOS's x-safari-https
+  // scheme, and there it redirects normally. If the app refuses the scheme,
+  // the tap does nothing, which is why the ••• way is listed right under it.
+  var safari = document.querySelector(".js-safari");
+  if (safari) safari.href = "x-safari-" + location.href;
+
+  var copy = document.querySelector(".js-copy");
+  if (copy) copy.addEventListener("click", function () {
+    var text = "Word Wars Typing Battle";
+    var done = function () { copy.textContent = "Copied"; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {});
+    } else {
+      var t = document.createElement("textarea");
+      t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      document.body.removeChild(t);
+    }
+  });
+})();
 </script>
 </body>
 </html>
