@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play Word Wars: Typing Battle</title>
+<meta name="description" content="A real-time word battler where the end of your word becomes your opponent's problem. Free on iPhone and iPad.">
+<link rel="canonical" href="https://damondjr.github.io/play/">
+
+<!-- The bio link. https://damondjr.github.io/play/ sends anyone who can
+     install the game straight to its store page. The page below is only what
+     shows while that happens, or for anyone the store can't serve yet.
+
+     Tag each place you post the link with ?c=, e.g.
+         https://damondjr.github.io/play/?c=tiktok
+         https://damondjr.github.io/play/?c=instagram
+     and the tag reaches App Store Connect as the campaign, under
+     Analytics → Acquisition → Campaigns. No ?c= counts as "site". -->
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Damon Drummond">
+<meta property="og:title" content="Word Wars: Typing Battle">
+<meta property="og:description" content="The end of your word becomes your opponent's problem. Free on iPhone and iPad.">
+<meta property="og:url" content="https://damondjr.github.io/play/">
+<meta property="og:image" content="https://damondjr.github.io/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="apple-itunes-app" content="app-id=6802900966">
+
+<script>
+(function () {
+  // Your App Store Connect provider token: App Store Connect → Analytics →
+  // Acquisition → Campaigns → Generate Link, then copy the number after pt=.
+  // Until it's filled in the redirect still works; Apple just can't attribute.
+  var PROVIDER_TOKEN = "";
+  // The Play listing, once the game is live there. Until then Android stays on
+  // this page rather than being sent to an App Store it can't use.
+  var PLAY_URL = "";
+
+  var APP_ID = "6802900966";
+  var ua = navigator.userAgent || "";
+  var android = /Android/i.test(ua);
+
+  var tag = "site";
+  try {
+    var c = new URLSearchParams(location.search).get("c");
+    // Apple caps a campaign name at 40 characters.
+    if (c) tag = c.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40) || tag;
+  } catch (e) {}
+
+  var apple = "https://apps.apple.com/app/apple-store/id" + APP_ID;
+  if (PROVIDER_TOKEN) {
+    apple += "?pt=" + PROVIDER_TOKEN + "&ct=" + encodeURIComponent(tag) + "&mt=8";
+  }
+  window.WW_STORE = apple;
+
+  var dest = android ? PLAY_URL : apple;
+  if (dest) {
+    // replace() so Back from the store returns to TikTok, not to this page.
+    location.replace(dest);
+  } else {
+    document.documentElement.className = "android";
+  }
+})();
+</script>
+<noscript>
+  <meta http-equiv="refresh" content="0; url=https://apps.apple.com/app/apple-store/id6802900966">
+</noscript>
+
+<link rel="icon" href="/assets/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  .go { padding-block: 3.5rem; }
+  .go h1 { margin-bottom: 1rem; }
+  /* One message for iPhone (on its way to the store), another for Android
+     (not there yet). The script picks by adding a class to <html>. */
+  .when-android { display: none; }
+  .android .when-android { display: block; }
+  .android .when-apple { display: none; }
+</style>
+</head>
+<body>
+
+<header class="wrap id">
+  <img class="avatar" src="/assets/avatar.jpg" width="76" height="76"
+       alt="Damon Drummond">
+  <div>
+    <p class="id-name">Damon Drummond</p>
+    <p class="id-role">Solo game developer &middot; iOS</p>
+  </div>
+  <nav class="nav"><a href="/">Home</a></nav>
+</header>
+
+<main>
+  <section class="wrap band go">
+    <p class="eyebrow">Word Wars: Typing Battle</p>
+
+    <div class="when-apple">
+      <h1>Opening the App&nbsp;Store&hellip;</h1>
+      <p class="lede">If nothing happens, tap the button. It's free.</p>
+      <div class="actions">
+        <a class="btn btn-go" id="store"
+           href="https://apps.apple.com/app/apple-store/id6802900966">Get it on the App&nbsp;Store</a>
+        <a class="btn" href="/">About the game</a>
+      </div>
+    </div>
+
+    <div class="when-android">
+      <h1>Coming to Android soon.</h1>
+      <p class="lede">Word Wars is on iPhone and iPad right now, and the Android
+      version is on its way. When it lands, iPhone and Android players will be
+      able to play each other.</p>
+      <div class="actions">
+        <a class="btn btn-go" href="/">About the game</a>
+      </div>
+    </div>
+
+    <p class="eyebrow">The idea</p>
+    <p>Type a word and its last letters land on your opponent's board. They can
+    only clear them with a word that starts with those letters.
+    FRIEND<b>SHIP</b> sends them <b>SHIP</b>.</p>
+  </section>
+</main>
+
+<script>
+  // The button carries the same tracked link the redirect used.
+  var s = document.getElementById("store");
+  if (s && window.WW_STORE) s.href = window.WW_STORE;
+</script>
+</body>
+</html>
